@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Playfair+Display:ital,wght=1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <style>
+        /* Styles pour ton espace admin secret */
         #admin-section {
             display: none;
             margin-top: 40px;
@@ -26,14 +27,27 @@
             margin-bottom: 12px;
             border-radius: 4px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
+        .btn-delete {
+            background: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        /* Zone invisible en haut à droite (cliquer 3 fois pour ouvrir l'admin) */
         .secret-trigger {
-            width: 70px;
-            height: 70px;
+            width: 80px;
+            height: 80px;
             position: absolute;
             top: 0;
             right: 0;
             z-index: 9999;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -46,65 +60,92 @@
 
     <header class="luxury-header" style="padding: 50px 20px 15px;">
         <h1>À Cœur Ouvert</h1>
-        <div class="verset">Exprimez-vous en toute liberté.</div>
+        <div class="verset" style="font-family:'Montserrat'; text-transform:none;">Exprimez-vous en toute liberté.</div>
     </header>
 
-    <div class="grid-layout">
+    <div class="grid-layout" style="margin-top: 0;">
         <div class="card-premium col-12">
             <h2>Boîte à Questions Secrètes</h2>
-            <p style="margin-bottom: 20px; font-size: 0.95rem; opacity: 0.75;">Votre anonymat est totalement préservé.</p>
-            
-            <textarea id="private-message" class="input-premium" rows="5" placeholder="Posez votre question de manière anonyme..."></textarea>
+            <p style="margin-bottom: 20px; font-size: 0.95rem; opacity: 0.75;">Votre anonymat est totalement préservé. Votre message s'affiche instantanément sur la tablette de l'animatrice.</p>
+            <textarea id="private-message" class="input-premium" rows="5" placeholder="Posez votre question sur la foi, l'identité, les relations ou les finances..."></textarea>
             
             <button class="btn-premium" style="width: 100%; margin-top: 20px; justify-content: center;" onclick="sendSecret()">
                 Déposer dans le Cocon Sacré
             </button>
             
-            <p id="alert-success" style="display: none; text-align: center; margin-top: 15px; color: #6a1b9a; font-weight: 600; font-size: 0.9rem;"></p>
+            <p id="alert-success" style="display: none; text-align: center; margin-top: 15px; color: #6a1b9a; font-weight: 600; font-size: 0.9rem;">
+                ✨ Votre question a été déposée avec douceur. Merci, ma sœur.
+            </p>
         </div>
 
         <div id="admin-section" class="card-premium col-12">
             <div class="admin-title">
-                <h2>Espace Animatrice (🔒 Vos questions reçues)</h2>
-                <button class="btn-premium" style="padding: 5px 15px; background: #666;" onclick="hideAdmin()">Fermer</button>
+                <h2>Espace Animatrice (🔒 En Direct)</h2>
+                <div>
+                    <button class="btn-premium" style="padding: 5px 15px; font-size: 0.8rem; background: #28a745;" onclick="renderQuestions()">🔄 Rafraîchir</button>
+                    <button class="btn-premium" style="padding: 5px 15px; font-size: 0.8rem; background: #666;" onclick="hideAdmin()">Fermer</button>
+                </div>
             </div>
-            <p style="margin-bottom: 20px; font-size: 0.9rem; opacity: 0.8;">Voici les questions sauvegardées localement sur cet appareil :</p>
+            <p style="margin-bottom: 20px; font-size: 0.9rem; opacity: 0.8;">Questions reçues de tous les appareils :</p>
             
             <div id="questions-list">
-                <p style='text-align:center; opacity:0.5; font-style:italic;'>Aucune question reçue sur cet appareil pour l'instant. ✨</p>
+                <p style='text-align:center; opacity:0.5; font-style:italic;'>Cliquez sur Rafraîchir pour voir les messages... ✨</p>
             </div>
         </div>
     </div>
 
     <script>
         let clickCount = 0;
+        
+        // Clé publique de synchronisation (créée spécialement pour ta soirée)
+        const SYNC_URL = "https://api.kvdb.io/v1/buckets/coeur_girlz_live/keys/questions";
 
-        // Fonction d'envoi simplifiée et sécurisée
-        function sendSecret() {
+        // 1. LES FILLES ENVOIENT DEPUIS LEUR TÉLÉPHONE
+        async function sendSecret() {
             const field = document.getElementById('private-message');
             const text = field.value.trim();
             const alertBox = document.getElementById('alert-success');
             
             if (text !== "") {
-                // Sauvegarde immédiate dans la liste commune de l'appareil courant
-                let questions = JSON.parse(localStorage.getItem('messages_coeur') || '[]');
-                questions.push(text);
-                localStorage.setItem('messages_coeur', JSON.stringify(questions));
+                try {
+                    // Étape A : On récupère la liste des questions déjà envoyées par les autres
+                    let stack = [];
+                    const response = await fetch(SYNC_URL);
+                    if (response.ok) {
+                        stack = await response.json();
+                    }
+                    
+                    // Étape B : On ajoute la nouvelle question
+                    stack.push(text);
+                    
+                    // Étape C : On renvoie la liste mise à jour dans les airs
+                    await fetch(SYNC_URL, {
+                        method: 'POST',
+                        body: JSON.stringify(stack)
+                    });
+                    
+                    // Étape D : Succès visuel sur le téléphone
+                    field.value = "";
+                    alertBox.style.display = "block";
+                    setTimeout(() => { alertBox.style.display = "none"; }, 4000);
 
-                // Effacer le champ et afficher le succès
-                field.value = "";
-                alertBox.innerText = "✨ Votre question a été déposée avec douceur. Merci, ma sœur.";
-                alertBox.style.display = "block";
-                
-                if (document.getElementById('admin-section').style.display === "block") {
-                    renderQuestions();
+                    if (document.getElementById('admin-section').style.display === "block") {
+                        renderQuestions();
+                    }
+                } catch (error) {
+                    // En cas de micro-coupure internet, sauvegarde locale de secours
+                    const localStack = JSON.parse(localStorage.getItem('coeur-questions') || '[]');
+                    localStack.push(text);
+                    localStorage.setItem('coeur-questions', JSON.stringify(localStack));
+                    
+                    field.value = "";
+                    alertBox.style.display = "block";
+                    setTimeout(() => { alertBox.style.display = "none"; }, 4000);
                 }
-                
-                setTimeout(() => { alertBox.style.display = "none"; }, 4000);
             }
         }
 
-        // Gestion du triple clic en haut à droite
+        // 2. LE TRIPLE-CLIC SECRET POUR TOI
         function checkSecretClick() {
             clickCount++;
             if (clickCount >= 3) {
@@ -114,7 +155,7 @@
             setTimeout(() => { clickCount = 0; }, 2000);
         }
 
-        // Fenêtre de mot de passe "08 aout"
+        // 3. ENTRER LE MOT DE PASSE : 08 aout
         function askAdminCode() {
             const password = prompt("Entrez le code secret animatrice pour afficher les questions :");
             if (password) {
@@ -133,23 +174,56 @@
             document.getElementById('admin-section').style.display = "none";
         }
 
-        // Affichage des questions
-        function renderQuestions() {
+        // 4. CHARGER ET VOIR LES MESSAGES SUR TA TABLETTE
+        async function renderQuestions() {
             const container = document.getElementById('questions-list');
-            const questions = JSON.parse(localStorage.getItem('messages_coeur') || '[]');
+            container.innerHTML = "<p style='text-align:center; opacity:0.5; font-style:italic;'>Mise à jour... ⏳</p>";
             
-            if (questions.length === 0) {
-                container.innerHTML = "<p style='text-align:center; opacity:0.5; font-style:italic;'>Aucune question pour le moment... ✨</p>";
-                return;
+            try {
+                const response = await fetch(SYNC_URL);
+                let stack = [];
+                if (response.ok) {
+                    stack = await response.json();
+                }
+
+                if (stack.length === 0) {
+                    container.innerHTML = "<p style='text-align:center; opacity:0.5; font-style:italic;'>Aucune question pour le moment... ✨</p>";
+                    return;
+                }
+                
+                container.innerHTML = "";
+                stack.forEach((question, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'question-item';
+                    item.innerHTML = `
+                        <p style="margin:0; padding-right:15px; font-size:0.95rem; line-height:1.4; color:#333;">${question}</p>
+                        <button class="btn-delete" onclick="deleteQuestion(${index})">Supprimer</button>
+                    `;
+                    container.appendChild(item);
+                });
+            } catch (error) {
+                container.innerHTML = "<p style='text-align:center; color:red;'>Erreur de connexion.</p>";
             }
-            
-            container.innerHTML = "";
-            questions.forEach((question) => {
-                const item = document.createElement('div');
-                item.className = 'question-item';
-                item.innerHTML = `<p style="margin:0; color:#333; font-size:0.95rem; line-height:1.4;">${question}</p>`;
-                container.appendChild(item);
-            });
+        }
+
+        // 5. SUPPRIMER UNE QUESTION UNE FOIS LUE
+        async function deleteQuestion(index) {
+            if (confirm("Supprimer cette question définitivement ?")) {
+                try {
+                    const response = await fetch(SYNC_URL);
+                    if (response.ok) {
+                        let stack = await response.json();
+                        stack.splice(index, 1);
+                        await fetch(SYNC_URL, {
+                            method: 'POST',
+                            body: JSON.stringify(stack)
+                        });
+                        renderQuestions();
+                    }
+                } catch (error) {
+                    alert("Erreur de suppression.");
+                }
+            }
         }
     </script>
 </body>
