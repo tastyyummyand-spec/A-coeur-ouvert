@@ -7,128 +7,54 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-    <style>
-        :root {
-            --purple-deep: #1a0533;
-            --purple-royal: #3b0764;
-            --purple-mid: #6d28d9;
-            --purple-light: #a78bfa;
-            --glass: rgba(255,255,255,0.62);
-            --glass-border: rgba(167,139,250,0.25);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'DM Sans', sans-serif;
-            background: #f5f0ff;
-            color: var(--purple-deep);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* ❌ CROIX SUPPRIMÉE (plus de body::before) */
-
-        .luxury-header {
-            text-align: center;
-            padding: 70px 20px 40px;
-        }
-
-        .luxury-header h1 {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 4rem;
-            font-style: italic;
-            color: var(--purple-deep);
-        }
-
-        .brand-badge {
-            font-size: 0.7rem;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            color: var(--purple-mid);
-            margin-bottom: 15px;
-        }
-
-        .grid-layout {
-            max-width: 900px;
-            margin: auto;
-            padding: 20px;
-        }
-
-        .card {
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            border-radius: 25px;
-            padding: 30px;
-            backdrop-filter: blur(30px);
-        }
-
-        .title {
-            font-size: 1.5rem;
-            margin-bottom: 10px;
-        }
-
-        .subtitle {
-            font-size: 0.9rem;
-            opacity: 0.7;
-            margin-bottom: 20px;
-        }
-
-        textarea {
-            width: 100%;
-            height: 120px;
-            padding: 15px;
-            border-radius: 15px;
-            border: 1px solid rgba(109,40,217,0.2);
-            outline: none;
-            resize: none;
-        }
-
-        button {
-            width: 100%;
-            margin-top: 15px;
-            padding: 15px;
-            border: none;
-            border-radius: 30px;
-            background: linear-gradient(135deg,#3b0764,#6d28d9,#a78bfa);
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .success {
-            display: none;
-            margin-top: 20px;
-            padding: 15px;
-            background: #ede9fe;
-            border-radius: 15px;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
 <header class="luxury-header">
-    <div class="brand-badge">Porteuse de Vie</div>
+    <div class="brand-badge">Porteuse de Vie • Soirée À Cœur Ouvert</div>
     <h1>À Cœur Ouvert</h1>
+    <div class="verset">Car l'Éternel sonde tous les cœurs — 1 Chr 28:9</div>
 </header>
 
 <div class="grid-layout">
-    <div class="card">
-        <div class="title">Boîte à questions</div>
-        <div class="subtitle">Écris en toute confidentialité</div>
+    <div class="card-premium cocon-card col-12">
 
-        <textarea id="msg" placeholder="Écris ici..."></textarea>
-
-        <button onclick="send()">Envoyer</button>
-
-        <div class="success" id="success">
-            Message envoyé ✨
+        <div class="cocon-title">Boîte à Questions Secrètes</div>
+        <div class="cocon-subtitle">
+            Posez tout ce qui est sur votre cœur, sans retenue.
         </div>
+
+        <div class="anon-badge">
+            🔒 Totalement anonyme
+        </div>
+
+        <textarea
+            id="private-message"
+            class="input-premium"
+            rows="5"
+            placeholder="Pose ta question ici..."
+            oninput="updateChar(this)">
+        </textarea>
+
+        <div class="char-hint" id="char-hint">0 / 500 caractères</div>
+
+        <button class="btn-cocon" id="send-btn" onclick="sendSecret()">
+            🕊️ Envoyer au Cocon
+        </button>
+
+        <div class="blessing-box" id="blessing-box">
+            <span id="blessing-emoji">🌸</span>
+            <div id="blessing-title"></div>
+            <div id="blessing-verset"></div>
+            <div id="blessing-ref"></div>
+        </div>
+
+        <div class="alert-error" id="alert-error">
+            ⚠️ Erreur d’envoi. Réessaie.
+        </div>
+
     </div>
 </div>
 
@@ -149,21 +75,55 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-window.send = async function () {
-    const msg = document.getElementById("msg").value.trim();
-    if (!msg) return;
+const blessings = [
+    { emoji:"🌸", title:"Message envoyé", verset:"Dieu te bénisse", ref:"Amen" },
+    { emoji:"🕊️", title:"Message reçu", verset:"Paix sur toi", ref:"Amen" },
+    { emoji:"✨", title:"Cœur entendu", verset:"Ne crains pas", ref:"Ésaïe 41:10" }
+];
 
-    await push(ref(db, "questions"), {
-        texte: msg,
-        timestamp: Date.now()
-    });
+window.updateChar = function(el) {
+    document.getElementById("char-hint").textContent =
+        el.value.length + " / 500 caractères";
+};
 
-    document.getElementById("msg").value = "";
-    document.getElementById("success").style.display = "block";
+window.sendSecret = async function () {
+    const field = document.getElementById("private-message");
+    const text = field.value.trim();
 
-    setTimeout(() => {
-        document.getElementById("success").style.display = "none";
-    }, 3000);
+    if (!text) return;
+
+    const btn = document.getElementById("send-btn");
+    btn.disabled = true;
+    btn.textContent = "Envoi...";
+
+    try {
+        await push(ref(db, "questions"), {
+            texte: text,
+            timestamp: Date.now()
+        });
+
+        field.value = "";
+        document.getElementById("char-hint").textContent = "0 / 500 caractères";
+
+        const b = blessings[Math.floor(Math.random() * blessings.length)];
+
+        document.getElementById("blessing-emoji").textContent = b.emoji;
+        document.getElementById("blessing-title").textContent = b.title;
+        document.getElementById("blessing-verset").textContent = b.verset;
+        document.getElementById("blessing-ref").textContent = b.ref;
+
+        document.getElementById("blessing-box").style.display = "block";
+
+        setTimeout(() => {
+            document.getElementById("blessing-box").style.display = "none";
+        }, 6000);
+
+    } catch (e) {
+        document.getElementById("alert-error").style.display = "block";
+    }
+
+    btn.disabled = false;
+    btn.textContent = "🕊️ Envoyer au Cocon";
 };
 </script>
 
