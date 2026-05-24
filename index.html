@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Playfair+Display:ital,wght=1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Styles de la zone administration invisible par défaut */
         #admin-section {
             display: none;
             margin-top: 40px;
@@ -27,19 +26,7 @@
             margin-bottom: 12px;
             border-radius: 4px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
-        .btn-delete {
-            background: #ff4d4d;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        /* Bouton ou zone d'activation invisible en haut à droite */
         .secret-trigger {
             width: 70px;
             height: 70px;
@@ -47,7 +34,6 @@
             top: 0;
             right: 0;
             z-index: 9999;
-            cursor: default;
         }
     </style>
 </head>
@@ -66,8 +52,9 @@
     <div class="grid-layout">
         <div class="card-premium col-12">
             <h2>Boîte à Questions Secrètes</h2>
-            <p style="margin-bottom: 20px; font-size: 0.95rem; opacity: 0.75;">Votre anonymat est totalement préservé. Votre message s'affiche instantanément sur la tablette de l'animatrice.</p>
-            <textarea id="private-message" class="input-premium" rows="5" placeholder="Posez votre question sur la foi, l'identité, les relations ou les finances..."></textarea>
+            <p style="margin-bottom: 20px; font-size: 0.95rem; opacity: 0.75;">Votre anonymat est totalement préservé.</p>
+            
+            <textarea id="private-message" class="input-premium" rows="5" placeholder="Posez votre question de manière anonyme..."></textarea>
             
             <button class="btn-premium" style="width: 100%; margin-top: 20px; justify-content: center;" onclick="sendSecret()">
                 Déposer dans le Cocon Sacré
@@ -78,68 +65,46 @@
 
         <div id="admin-section" class="card-premium col-12">
             <div class="admin-title">
-                <h2>Espace Animatrice (🔒 En Direct)</h2>
-                <div>
-                    <button class="btn-premium" style="padding: 5px 15px; font-size: 0.8rem; background: #28a745;" onclick="renderQuestions()">🔄 Rafraîchir</button>
-                    <button class="btn-premium" style="padding: 5px 15px; font-size: 0.8rem; background: #666;" onclick="hideAdmin()">Fermer</button>
-                </div>
+                <h2>Espace Animatrice (🔒 Vos questions reçues)</h2>
+                <button class="btn-premium" style="padding: 5px 15px; background: #666;" onclick="hideAdmin()">Fermer</button>
             </div>
-            <p style="margin-bottom: 20px; font-size: 0.9rem; opacity: 0.8;">Questions reçues en temps réel :</p>
+            <p style="margin-bottom: 20px; font-size: 0.9rem; opacity: 0.8;">Voici les questions sauvegardées localement sur cet appareil :</p>
             
             <div id="questions-list">
-                <p style='text-align:center; opacity:0.5; font-style:italic;'>Cliquez sur Rafraîchir pour voir les messages... ✨</p>
+                <p style='text-align:center; opacity:0.5; font-style:italic;'>Aucune question reçue sur cet appareil pour l'instant. ✨</p>
             </div>
         </div>
     </div>
 
     <script>
         let clickCount = 0;
-        
-        // Relais universel sans aucune restriction de sécurité (CORS bypass)
-        const SERVER_URL = "https://api.allorigins.win/raw?url=" + encodeURIComponent("https://api.rest7.com/v1/text_storage?id=coeur_girlz_session");
 
-        // 1. FONCTION D'ENVOI (TOUS LES APPAREILS)
-        async function sendSecret() {
+        // Fonction d'envoi simplifiée et sécurisée
+        function sendSecret() {
             const field = document.getElementById('private-message');
             const text = field.value.trim();
             const alertBox = document.getElementById('alert-success');
             
             if (text !== "") {
-                alertBox.innerText = "⏳ Envoi au cocon...";
+                // Sauvegarde immédiate dans la liste commune de l'appareil courant
+                let questions = JSON.parse(localStorage.getItem('messages_coeur') || '[]');
+                questions.push(text);
+                localStorage.setItem('messages_coeur', JSON.stringify(questions));
+
+                // Effacer le champ et afficher le succès
+                field.value = "";
+                alertBox.innerText = "✨ Votre question a été déposée avec douceur. Merci, ma sœur.";
                 alertBox.style.display = "block";
-
-                try {
-                    // On récupère l'ancienne liste
-                    let list = [];
-                    const resFetch = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent("https://api.rest7.com/v1/text_storage?id=coeur_girlz_session"));
-                    if (resFetch.ok) {
-                        const rawText = await resFetch.text();
-                        if(rawText && rawText.trim() !== "") list = JSON.parse(rawText);
-                    }
-                    
-                    // On ajoute la nouvelle question
-                    list.push(text);
-
-                    // On enregistre à nouveau via le relais universel
-                    await fetch("https://api.rest7.com/v1/text_storage", {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: `id=coeur_girlz_session&text=${encodeURIComponent(JSON.stringify(list))}`
-                    });
-
-                    field.value = "";
-                    alertBox.innerText = "✨ Votre question a été déposée avec douceur. Merci, ma sœur.";
-                    if (document.getElementById('admin-section').style.display === "block") {
-                        renderQuestions();
-                    }
-                } catch (error) {
-                    alertBox.innerText = "❌ Souci de réseau temporaire, réessayez.";
+                
+                if (document.getElementById('admin-section').style.display === "block") {
+                    renderQuestions();
                 }
+                
                 setTimeout(() => { alertBox.style.display = "none"; }, 4000);
             }
         }
 
-        // 2. LE GESTE SECRET (3 TAPOTEMENTS EN HAUT À DROITE)
+        // Gestion du triple clic en haut à droite
         function checkSecretClick() {
             clickCount++;
             if (clickCount >= 3) {
@@ -149,7 +114,7 @@
             setTimeout(() => { clickCount = 0; }, 2000);
         }
 
-        // 3. FENÊTRE DU MOT DE PASSE (08 aout)
+        // Fenêtre de mot de passe "08 aout"
         function askAdminCode() {
             const password = prompt("Entrez le code secret animatrice pour afficher les questions :");
             if (password) {
@@ -168,62 +133,23 @@
             document.getElementById('admin-section').style.display = "none";
         }
 
-        // 4. RÉCUPÉRATION ET AFFICHAGE EN DIRECT SUR TA TABLETTE
-        async function renderQuestions() {
+        // Affichage des questions
+        function renderQuestions() {
             const container = document.getElementById('questions-list');
-            container.innerHTML = "<p style='text-align:center; opacity:0.5; font-style:italic;'>Mise à jour... ⏳</p>";
+            const questions = JSON.parse(localStorage.getItem('messages_coeur') || '[]');
             
-            try {
-                const res = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent("https://api.rest7.com/v1/text_storage?id=coeur_girlz_session"));
-                let stack = [];
-                if (res.ok) {
-                    const rawText = await res.text();
-                    if(rawText && rawText.trim() !== "") stack = JSON.parse(rawText);
-                }
-                
-                if (stack.length === 0) {
-                    container.innerHTML = "<p style='text-align:center; opacity:0.5; font-style:italic;'>Aucune question pour le moment... ✨</p>";
-                    return;
-                }
-                
-                container.innerHTML = "";
-                stack.forEach((question, index) => {
-                    const item = document.createElement('div');
-                    item.className = 'question-item';
-                    item.innerHTML = `
-                        <p style="margin:0; padding-right:15px; font-size:0.95rem; line-height:1.4; color:#333;">${question}</p>
-                        <button class="btn-delete" onclick="deleteQuestion(${index})">Supprimer</button>
-                    `;
-                    container.appendChild(item);
-                });
-            } catch (error) {
-                container.innerHTML = "<p style='text-align:center; opacity:0.5;'>Aucun message trouvé ou erreur de chargement.</p>";
+            if (questions.length === 0) {
+                container.innerHTML = "<p style='text-align:center; opacity:0.5; font-style:italic;'>Aucune question pour le moment... ✨</p>";
+                return;
             }
-        }
-
-        // 5. SUPPRESSION D'UNE QUESTION DEPUIS L'ADMIN
-        async function deleteQuestion(index) {
-            if (confirm("Supprimer cette question définitivement ?")) {
-                try {
-                    const resFetch = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent("https://api.rest7.com/v1/text_storage?id=coeur_girlz_session"));
-                    let list = [];
-                    if (resFetch.ok) {
-                        const rawText = await resFetch.text();
-                        if(rawText && rawText.trim() !== "") list = JSON.parse(rawText);
-                    }
-                    
-                    list.splice(index, 1);
-                    
-                    await fetch("https://api.rest7.com/v1/text_storage", {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: `id=coeur_girlz_session&text=${encodeURIComponent(JSON.stringify(list))}`
-                    });
-                    renderQuestions();
-                } catch (error) {
-                    alert("Erreur lors de la suppression.");
-                }
-            }
+            
+            container.innerHTML = "";
+            questions.forEach((question) => {
+                const item = document.createElement('div');
+                item.className = 'question-item';
+                item.innerHTML = `<p style="margin:0; color:#333; font-size:0.95rem; line-height:1.4;">${question}</p>`;
+                container.appendChild(item);
+            });
         }
     </script>
 </body>
