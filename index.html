@@ -4,128 +4,247 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>À Cœur Ouvert - Porteuse de Vie</title>
-
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght=0,300;0,400;1,300;1,400&family=DM+Sans:wght=300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <style>
+        .cocon-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.75), rgba(237,233,254,0.5));
+            border: 1px solid rgba(167,139,250,0.2);
+            border-radius: 28px;
+            padding: 40px 36px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        /* CORRECTION : La croix est mise en arrière-plan total et ne bloque plus les clics */
+        .cocon-card::before {
+            content: '✝';
+            position: absolute;
+            top: -10px; right: -10px;
+            font-size: 6rem;
+            color: rgba(167,139,250,0.06);
+            pointer-events: none; /* Empêche de bloquer le clic */
+            z-index: 1; /* Reste derrière le texte et les boutons */
+        }
+        @media (max-width: 480px) {
+            .cocon-card::before {
+                font-size: 4.5rem; /* Plus petite sur téléphone pour éviter tout conflit */
+                top: -5px; right: -5px;
+            }
+        }
+        /* S'assurer que le contenu est cliquable par-dessus la croix */
+        .cocon-title, .cocon-subtitle, .anon-badge, .input-premium, .char-hint, .btn-cocon, .blessing-box {
+            position: relative;
+            z-index: 2;
+        }
+        .cocon-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2rem;
+            font-style: italic;
+            font-weight: 300;
+            color: var(--purple-deep);
+            margin-bottom: 8px;
+        }
+        .cocon-subtitle {
+            font-size: 0.85rem;
+            color: var(--purple-mid);
+            opacity: 0.75;
+            margin-bottom: 28px;
+            line-height: 1.6;
+        }
+        .anon-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(167,139,250,0.12);
+            border: 1px solid rgba(167,139,250,0.25);
+            border-radius: 50px;
+            padding: 5px 14px;
+            font-size: 0.75rem;
+            color: var(--purple-mid);
+            font-weight: 500;
+            margin-bottom: 22px;
+            letter-spacing: 0.3px;
+        }
+        .char-hint {
+            font-size: 0.75rem;
+            color: var(--purple-mid);
+            opacity: 0.45;
+            text-align: right;
+            margin: 6px 0 18px;
+        }
+        .btn-cocon {
+            background: linear-gradient(135deg, #3b0764 0%, #6d28d9 60%, #a78bfa 100%);
+            color: white;
+            border: none;
+            padding: 16px 36px;
+            border-radius: 50px;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 500;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 24px rgba(109,40,217,0.3);
+        }
+        .btn-cocon:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(109,40,217,0.4); }
+        .btn-cocon:active { transform: scale(0.98); }
+        .btn-cocon:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .blessing-box {
+            display: none;
+            margin-top: 28px;
+            padding: 28px 24px;
+            background: linear-gradient(135deg, rgba(237,233,254,0.8), rgba(252,231,243,0.6));
+            border-radius: 20px;
+            border: 1px solid rgba(167,139,250,0.25);
+            animation: fadeInUp 0.5s ease;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .blessing-emoji { font-size: 2.2rem; margin-bottom: 10px; display: block; }
+        .blessing-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.35rem;
+            font-style: italic;
+            color: var(--purple-deep);
+            margin-bottom: 10px;
+        }
+        .blessing-verset {
+            font-size: 0.83rem;
+            color: var(--purple-royal);
+            line-height: 1.75;
+            font-style: italic;
+            opacity: 0.9;
+        }
+        .blessing-ref {
+            font-size: 0.75rem;
+            color: var(--purple-light);
+            margin-top: 8px;
+            font-weight: 600;
+        }
+        .alert-error {
+            display: none;
+            margin-top: 15px;
+            color: #7f1d1d;
+            font-size: 0.85rem;
+            background: #fef2f2;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid #fecaca;
+        }
+    </style>
 </head>
-
 <body>
 
-<header class="luxury-header">
-    <div class="brand-badge">Porteuse de Vie • Soirée À Cœur Ouvert</div>
-    <h1>À Cœur Ouvert</h1>
-    <div class="verset">Car l'Éternel sonde tous les cœurs — 1 Chr 28:9</div>
-</header>
+    <header class="luxury-header" style="padding: 55px 20px 20px;">
+        <div class="brand-badge">Porteuse de Vie • Soirée À Cœur Ouvert</div>
+        <h1>À Cœur Ouvert</h1>
+        <div class="verset" style="text-transform:none; letter-spacing:1px; font-style:italic;">"Car l'Éternel sonde tous les cœurs" — 1 Chr 28:9</div>
+    </header>
 
-<div class="grid-layout">
-    <div class="card-premium cocon-card col-12">
+    <div class="grid-layout" style="margin-top:0; max-width:580px;">
+        <div class="card-premium col-12 cocon-card">
+            <div class="cocon-title">Boîte à Questions Secrètes</div>
+            <div class="cocon-subtitle">Posez tout ce qui est sur votre cœur, sans retenue.</div>
+            <div class="anon-badge">🔒 Totalement anonyme — personne ne saura qui vous êtes</div>
 
-        <div class="cocon-title">Boîte à Questions Secrètes</div>
-        <div class="cocon-subtitle">
-            Posez tout ce qui est sur votre cœur, sans retenue.
+            <textarea id="private-message" class="input-premium" rows="5"
+                placeholder="Posez votre question sur la foi, l'identité, les relations, les finances… tout ce qui pèse sur votre cœur 🤍"
+                oninput="updateChar(this)"></textarea>
+            <div class="char-hint" id="char-hint">0 / 500 caractères</div>
+
+            <button class="btn-cocon" id="send-btn" onclick="sendSecret()">
+                🕊️ &nbsp; Envoyer au Cocon
+            </button>
+
+            <div class="blessing-box" id="blessing-box">
+                <span class="blessing-emoji" id="blessing-emoji">🌸</span>
+                <div class="blessing-title" id="blessing-title"></div>
+                <div class="blessing-verset" id="blessing-verset"></div>
+                <div class="blessing-ref" id="blessing-ref"></div>
+            </div>
+
+            <div class="alert-error" id="alert-error">
+                ⚠️ Une erreur est survenue. Vérifiez votre connexion et réessayez.
+            </div>
         </div>
-
-        <div class="anon-badge">
-            🔒 Totalement anonyme
-        </div>
-
-        <textarea
-            id="private-message"
-            class="input-premium"
-            rows="5"
-            placeholder="Pose ta question ici..."
-            oninput="updateChar(this)">
-        </textarea>
-
-        <div class="char-hint" id="char-hint">0 / 500 caractères</div>
-
-        <button class="btn-cocon" id="send-btn" onclick="sendSecret()">
-            🕊️ Envoyer au Cocon
-        </button>
-
-        <div class="blessing-box" id="blessing-box">
-            <span id="blessing-emoji">🌸</span>
-            <div id="blessing-title"></div>
-            <div id="blessing-verset"></div>
-            <div id="blessing-ref"></div>
-        </div>
-
-        <div class="alert-error" id="alert-error">
-            ⚠️ Erreur d’envoi. Réessaie.
-        </div>
-
     </div>
-</div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-const firebaseConfig = {
-    apiKey: "AIzaSyBR_Aq3uBI1mmARbSSXXWnmxBI4wq19lxs",
-    authDomain: "a-coeur-ouver.firebaseapp.com",
-    databaseURL: "https://a-coeur-ouver-default-rtdb.firebaseio.com",
-    projectId: "a-coeur-ouver",
-    storageBucket: "a-coeur-ouver.firebasestorage.app",
-    messagingSenderId: "385888150365",
-    appId: "1:385888150365:web:4dd22f9d5ca0e53b7bfeb4"
-};
+        const firebaseConfig = {
+            apiKey: "AIzaSyBR_Aq3uBI1mmARbSSXXWnmxBI4wq19lxs",
+            authDomain: "a-coeur-ouver.firebaseapp.com",
+            databaseURL: "https://a-coeur-ouver-default-rtdb.firebaseio.com",
+            projectId: "a-coeur-ouver",
+            storageBucket: "a-coeur-ouver.firebasestorage.app",
+            messagingSenderId: "385888150365",
+            appId: "1:385888150365:web:4dd22f9d5ca0e53b7bfeb4"
+        };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-const blessings = [
-    { emoji:"🌸", title:"Message envoyé", verset:"Dieu te bénisse", ref:"Amen" },
-    { emoji:"🕊️", title:"Message reçu", verset:"Paix sur toi", ref:"Amen" },
-    { emoji:"✨", title:"Cœur entendu", verset:"Ne crains pas", ref:"Ésaïe 41:10" }
-];
+        const blessings = [
+            { emoji: "🌸", title: "Message envoyé — Dieu vous bénisse, ma sœur !", verset: "« L'Éternel te bénisse et te garde ! L'Éternel fasse briller sa face sur toi et t'accorde sa grâce ! »", ref: "Nombres 6 : 24-25" },
+            { emoji: "🕊️", title: "Message envoyé — À tout à l'heure !", verset: "« Car je connais les projets que j'ai formés sur vous : des projets de paix et non de malheur, pour vous donner un avenir et de l'espérance. »", ref: "Jérémie 29 : 11" },
+            { emoji: "✨", title: "Message envoyé — Votre cœur a été entendu.", verset: "« Jette ton fardeau sur l'Éternel, et il te soutiendra. »", ref: "Psaume 55 : 22" },
+            { emoji: "🦋", title: "Message envoyé — Merci, belle âme.", verset: "« Tu me montres le chemin de la vie. Il y a une joie abondante devant ta face. »", ref: "Psaume 16 : 11" },
+            { emoji: "💜", title: "Message envoyé — Votre question est entre de bonnes mains.", verset: "« Remets ton sort à l'Éternel, mets en lui ta confiance, et il agira. »", ref: "Psaume 37 : 5" },
+            { emoji: "🌟", title: "Message envoyé — Dieu vous voit et vous aime.", verset: "« Approchez-vous de Dieu, et il s'approchera de vous. »", ref: "Jacques 4 : 8" },
+            { emoji: "🙏", title: "Message envoyé — Merci pour votre confiance.", verset: "« L'Éternel est proche de ceux qui ont le cœur brisé, et il sauve ceux qui ont l'esprit dans l'abattement. »", ref: "Psaume 34 : 18" },
+            { emoji: "🌺", title: "Message envoyé — Vous n'êtes pas seule.", verset: "« Dieu est pour nous un refuge et un appui, un secours qui ne manque jamais dans la détresse. »", ref: "Psaume 46 : 1" },
+            { emoji: "🫶", title: "Message envoyé — Merci d'avoir osé partager.", verset: "« Elle est forte et pleine de dignité, et elle sourit à l'avenir. »", ref: "Proverbes 31 : 25" },
+            { emoji: "🌙", title: "Message envoyé — Que cette nuit vous transforme.", verset: "« Ne crains pas, car je suis avec toi ; ne te décourage pas, car je suis ton Dieu. »", ref: "Ésaïe 41 : 10" },
+            { emoji: "🌿", title: "Message envoyé — Votre cœur compte.", verset: "« L'Éternel est mon berger : je ne manquerai de rien. »", ref: "Psaume 23 : 1" },
+            { emoji: "💫", title: "Message envoyé — Bonne soirée à cœur ouvert !", verset: "« Tout ce que vous demanderez avec foi par la prière, vous le recevrez. »", ref: "Matthieu 21 : 22" },
+        ];
 
-window.updateChar = function(el) {
-    document.getElementById("char-hint").textContent =
-        el.value.length + " / 500 caractères";
-};
+        window.updateChar = function(el) {
+            document.getElementById('char-hint').textContent = el.value.length + ' / 500 caractères';
+        };
 
-window.sendSecret = async function () {
-    const field = document.getElementById("private-message");
-    const text = field.value.trim();
+        window.sendSecret = async function() {
+            const field = document.getElementById('private-message');
+            const text = field.value.trim();
+            if (!text) return;
 
-    if (!text) return;
+            const btn = document.getElementById('send-btn');
+            btn.disabled = true;
+            btn.textContent = '⏳  Envoi en cours…';
 
-    const btn = document.getElementById("send-btn");
-    btn.disabled = true;
-    btn.textContent = "Envoi...";
+            try {
+                await push(ref(db, 'questions'), { texte: text, timestamp: Date.now() });
 
-    try {
-        await push(ref(db, "questions"), {
-            texte: text,
-            timestamp: Date.now()
-        });
+                field.value = "";
+                document.getElementById('char-hint').textContent = '0 / 500 caractères';
+                document.getElementById('alert-error').style.display = "none";
 
-        field.value = "";
-        document.getElementById("char-hint").textContent = "0 / 500 caractères";
+                const b = blessings[Math.floor(Math.random() * blessings.length)];
+                document.getElementById('blessing-emoji').textContent = b.emoji;
+                document.getElementById('blessing-title').textContent = b.title;
+                document.getElementById('blessing-verset').textContent = b.verset;
+                document.getElementById('blessing-ref').textContent = '— ' + b.ref;
+                document.getElementById('blessing-box').style.display = "block";
 
-        const b = blessings[Math.floor(Math.random() * blessings.length)];
+                btn.innerHTML = '✅  Message envoyé au cocon !';
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = '🕊️ &nbsp; Envoyer au Cocon';
+                    document.getElementById('blessing-box').style.display = "none";
+                }, 8000);
 
-        document.getElementById("blessing-emoji").textContent = b.emoji;
-        document.getElementById("blessing-title").textContent = b.title;
-        document.getElementById("blessing-verset").textContent = b.verset;
-        document.getElementById("blessing-ref").textContent = b.ref;
-
-        document.getElementById("blessing-box").style.display = "block";
-
-        setTimeout(() => {
-            document.getElementById("blessing-box").style.display = "none";
-        }, 6000);
-
-    } catch (e) {
-        document.getElementById("alert-error").style.display = "block";
-    }
-
-    btn.disabled = false;
-    btn.textContent = "🕊️ Envoyer au Cocon";
-};
-</script>
-
+            } catch (e) {
+                document.getElementById('alert-error').style.display = "block";
+                btn.disabled = false;
+                btn.innerHTML = '🕊️ &nbsp; Envoyer au Cocon';
+            }
+        };
+    </script>
 </body>
 </html>
