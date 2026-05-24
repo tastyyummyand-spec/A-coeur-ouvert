@@ -46,14 +46,12 @@
         <div class="card-premium col-8">
             <h2><i class="fa-solid fa-gamepad"></i> Banque de Jeux Intégrée</h2>
             <p style="margin-bottom: 15px;">Sélectionnez une étape pour la pousser instantanément sur le projecteur :</p>
-            
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                 <div style="background: rgba(255,255,255,0.4); padding: 15px; border-radius: 12px;">
                     <strong style="font-size:0.9rem; display:block; margin-bottom:8px;">1. Mimes & Alphabet</strong>
                     <button class="btn-premium" style="width:100%; margin-bottom:5px; font-size:0.8rem;" onclick="pushDisplay('Jeu des Mimes 🎭', 'Mimez un personnage biblique ou une figure religieuse ! C\'est parti !')">Projeter Mimes</button>
                     <button class="btn-premium" style="width:100%; font-size:0.8rem;" onclick="pushDisplay('Jeu de l\'Alphabet 🔤', 'Donnez un personnage biblique commençant par la lettre projetée !')">Projeter Alphabet</button>
                 </div>
-                
                 <div style="background: rgba(255,255,255,0.4); padding: 15px; border-radius: 12px;">
                     <strong style="font-size:0.9rem; display:block; margin-bottom:8px;">2. Chants & Énigmes</strong>
                     <button class="btn-premium" style="width:100%; margin-bottom:5px; font-size:0.8rem;" onclick="pushDisplay('Trouve la Chanson 🎵', 'Trouvez une chanson chrétienne contenant le mot imposé par l\'animatrice !')">Projeter Jeu Chants</button>
@@ -86,52 +84,69 @@
 
         <div class="card-premium col-8">
             <h2><i class="fa-solid fa-envelope-open-text"></i> Boîte Secrète des Questions</h2>
-            <p style="margin-bottom: 20px;">Les questions transmises de manière anonyme s'ajoutent ici. Personne d'autre ne peut les intercepter.</p>
+            <p style="margin-bottom: 20px;">Les questions arrivent en temps réel depuis les téléphones des participantes.</p>
             <div id="admin-questions-box" style="display: flex; flex-direction: column; gap: 12px;">
-                </div>
+                <p style="font-style:italic; opacity:0.5;">En attente de partages de la part des participantes...</p>
+            </div>
         </div>
 
     </div>
 
-    <script>
-        function sendEvent(key, payload) {
-            localStorage.setItem(key, JSON.stringify({ payload: payload, timestamp: Date.now() }));
-        }
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-        function pushDisplay(meta, body) {
-            sendEvent('scenic-display', { meta: meta, body: body });
-        }
+        const firebaseConfig = {
+            apiKey: "AIzaSyBR_Aq3uBI1mmARbSSXXWnmxBI4wq19lxs",
+            authDomain: "a-coeur-ouver.firebaseapp.com",
+            databaseURL: "https://a-coeur-ouver-default-rtdb.firebaseio.com",
+            projectId: "a-coeur-ouver",
+            storageBucket: "a-coeur-ouver.firebasestorage.app",
+            messagingSenderId: "385888150365",
+            appId: "1:385888150365:web:4dd22f9d5ca0e53b7bfeb4"
+        };
 
-        function triggerControl(action) {
-            sendEvent('scenic-control', action);
-        }
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-        function fetchQuestions() {
+        // Écoute les questions en temps réel
+        onValue(ref(db, 'questions'), (snapshot) => {
             const container = document.getElementById('admin-questions-box');
-            const list = JSON.parse(localStorage.getItem('coeur-questions') || '[]');
-            container.innerHTML = list.length === 0 ? '<p style="font-style:italic; opacity:0.5;">En attente de partages de la part des participantes...</p>' : '';
-            
-            list.forEach((q, index) => {
+            const data = snapshot.val();
+
+            if (!data) {
+                container.innerHTML = '<p style="font-style:italic; opacity:0.5;">En attente de partages de la part des participantes...</p>';
+                return;
+            }
+
+            const questions = Object.entries(data).map(([id, val]) => ({ id, ...val }));
+            questions.sort((a, b) => a.timestamp - b.timestamp);
+
+            container.innerHTML = '';
+            questions.forEach((q) => {
                 const row = document.createElement('div');
                 row.style = "background: #ffffff; padding: 16px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--purple-royal); box-shadow: 0 4px 10px rgba(0,0,0,0.02);";
                 row.innerHTML = `
-                    <span style="font-weight: 500; color: var(--purple-deep); font-size:0.95rem;">"${q}"</span>
-                    <button class="btn-premium" style="padding: 8px 16px; font-size: 0.8rem;" onclick="projectQuestion(${index})">Projeter</button>
+                    <span style="font-weight: 500; color: var(--purple-deep); font-size:0.95rem;">"${q.texte}"</span>
+                    <button class="btn-premium" style="padding: 8px 16px; font-size: 0.8rem; flex-shrink:0; margin-left:12px;" onclick="window.projectQuestion('${q.texte.replace(/'/g, "\\'")}')">Projeter</button>
                 `;
                 container.appendChild(row);
             });
-        }
-
-        function projectQuestion(index) {
-            const list = JSON.parse(localStorage.getItem('coeur-questions') || '[]');
-            pushDisplay('Question Anonyme 💬', list[index]);
-        }
-
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'coeur-questions') fetchQuestions();
         });
 
-        fetchQuestions();
+        // Contrôle scène via Firebase
+        window.pushDisplay = function(meta, body) {
+            set(ref(db, 'scenic/display'), { meta, body, timestamp: Date.now() });
+        };
+
+        window.triggerControl = function(action) {
+            set(ref(db, 'scenic/control'), { action, timestamp: Date.now() });
+        };
+
+        window.projectQuestion = function(texte) {
+            window.pushDisplay('Question Anonyme 💬', texte);
+        };
     </script>
 </body>
 </html>
