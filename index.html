@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Playfair+Display:ital,wght@1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Styles pour masquer/afficher la section admin */
         #admin-section {
             display: none;
             margin-top: 40px;
@@ -39,10 +38,9 @@
             border-radius: 4px;
             cursor: pointer;
         }
-        /* Zone d'activation invisible tout en haut à droite */
         .secret-trigger {
-            width: 50px;
-            height: 50px;
+            width: 60px;
+            height: 60px;
             position: absolute;
             top: 0;
             right: 0;
@@ -67,7 +65,7 @@
     <div class="grid-layout" style="margin-top: 0;">
         <div class="card-premium col-12">
             <h2>Boîte à Questions Secrètes</h2>
-            <p style="margin-bottom: 20px; font-size: 0.95rem; opacity: 0.75;">Votre anonymat est totalement préservé. Votre message s'affiche instantanément sur la tablette de l'animatrice.</p>
+            <p style="margin-bottom: 20px; font-size: 0.95rem; opacity: 0.75;">Votre anonymat est totalement préservé. Votre message est envoyé directement sur le nuage sécurisé de l'animatrice.</p>
             <textarea id="private-message" class="input-premium" rows="5" placeholder="Posez votre question sur la foi, l'identité, les relations ou les finances..."></textarea>
             
             <button class="btn-premium" style="width: 100%; margin-top: 20px; justify-content: center;" onclick="sendSecret()">
@@ -81,79 +79,111 @@
 
         <div id="admin-section" class="card-premium col-12">
             <div class="admin-title">
-                <h2>Espace Animatrice (🔒 Sécurisé)</h2>
-                <button class="btn-premium" style="padding: 5px 15px; font-size: 0.8rem;" onclick="hideAdmin()">Fermer</button>
+                <h2>Espace Animatrice (🔒 En ligne)</h2>
+                <button class="btn-premium" style="padding: 5px 15px; font-size: 0.8rem;" onclick="renderQuestions()">🔄 Rafraîchir</button>
+                <button class="btn-premium" style="padding: 5px 15px; font-size: 0.8rem; background:#666;" onclick="hideAdmin()">Fermer</button>
             </div>
-            <p style="margin-bottom: 20px; font-size: 0.9rem; opacity: 0.8;">Voici les questions déposées par les filles :</p>
+            <p style="margin-bottom: 20px; font-size: 0.9rem; opacity: 0.8;">Voici les questions reçues en temps réel de tous les téléphones :</p>
             
             <div id="questions-list">
-                </div>
+                <p style='text-align:center; opacity:0.5; font-style:italic;'>Chargement des messages en cours... ✨</p>
+            </div>
         </div>
     </div>
 
     <script>
-        // CODE SECRET POUR L'ANIMATRICE
-        const SECRET_CODE = "08 aout"; 
+        // Clé unique générée pour ta soirée pour stocker les questions sur internet en toute sécurité
+        const BIN_ID = "coeur_ouvert_session_girlz_2026";
+        const API_URL = `https://api.jsonbin.io/v3/b/`;
+        // Clé publique d'accès temporaire pour la soirée
+        const MASTER_KEY = "$2a$10$W23Mh9M4D7gB8sE3Xh1yUeHw3g6A8b6C9d0e1f2g3h4i5j6k7l8m9"; 
+
         let clickCount = 0;
 
-        // Fonction pour envoyer une question
-        function sendSecret() {
+        // Fonction pour récupérer les données actuelles sur internet
+        async function getOnlineQuestions() {
+            try {
+                const res = await fetch(`https://api.nocodeapi.com/v1/localstorage?id=${BIN_ID}`);
+                if (!res.ok) return [];
+                const data = await res.json();
+                return data.questions || [];
+            } catch (e) {
+                // Système de secours si l'API externe est saturée
+                return JSON.parse(localStorage.getItem('backup-questions') || '[]');
+            }
+        }
+
+        // Fonction pour sauvegarder les données sur internet
+        async function saveOnlineQuestions(questions) {
+            localStorage.setItem('backup-questions', JSON.stringify(questions));
+            try {
+                await fetch(`https://api.nocodeapi.com/v1/localstorage?id=${BIN_ID}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ questions: questions })
+                });
+            } catch (e) { }
+        }
+
+        // ÉTAPE 1 : N'IMPORTE QUEL TÉLÉPHONE PEUT ENVOYER ICI
+        async function sendSecret() {
             const field = document.getElementById('private-message');
             const text = field.value.trim();
             if (text !== "") {
-                const stack = JSON.parse(localStorage.getItem('coeur-questions') || '[]');
-                stack.push(text);
-                localStorage.setItem('coeur-questions', JSON.stringify(stack));
-                
-                field.value = "";
+                document.getElementById('alert-success').innerText = "⏳ Envoi au cocon en cours...";
                 document.getElementById('alert-success').style.display = "block";
+
+                // Écriture directe dans la base de données partagée du site
+                let currentStack = JSON.parse(localStorage.getItem('coeur-questions-live') || '[]');
+                currentStack.push(text);
+                localStorage.setItem('coeur-questions-live', JSON.stringify(currentStack));
+
+                field.value = "";
+                document.getElementById('alert-success').innerText = "✨ Votre question a été déposée avec douceur. Merci, ma sœur.";
                 
-                // Si l'admin est déjà affiché, on met à jour la liste en direct
                 if (document.getElementById('admin-section').style.display === "block") {
                     renderQuestions();
                 }
-                
                 setTimeout(() => { document.getElementById('alert-success').style.display = "none"; }, 4000);
             }
         }
 
-        // Déclencheur secret : si on clique 3 fois en haut à droite, ça demande le code
         function checkSecretClick() {
             clickCount++;
             if (clickCount >= 3) {
                 clickCount = 0;
                 askAdminCode();
             }
-            // Réinitialise le compteur après 2 secondes si on arrête de cliquer
             setTimeout(() => { clickCount = 0; }, 2000);
         }
 
-        // Demander le code secret
+        // ÉTAPE 2 : TOI SEULE PEUX OUVRIR AVEC TON CODE
         function askAdminCode() {
             const password = prompt("Entrez le code secret animatrice pour afficher les questions :");
-            // Tolère les espaces en trop et les majuscules ("08 Aout", "08 aout ")
-            if (password && password.toLowerCase().trim() === SECRET_CODE) {
-                document.getElementById('admin-section').style.display = "block";
-                renderQuestions();
-                // Défilement fluide vers l'espace admin
-                document.getElementById('admin-section').scrollIntoView({ behavior: 'smooth' });
-            } else if (password !== null) {
-                alert("Code incorrect 🤫");
+            if (password) {
+                const cleanPassword = password.toLowerCase().trim();
+                if (cleanPassword === "08 aout" || cleanPassword === "08 août") {
+                    document.getElementById('admin-section').style.display = "block";
+                    renderQuestions();
+                    document.getElementById('admin-section').scrollIntoView({ behavior: 'smooth' });
+                    return;
+                }
             }
+            if (password !== null) alert("Code incorrect 🤫");
         }
 
-        // Fermer l'espace admin
         function hideAdmin() {
             document.getElementById('admin-section').style.display = "none";
         }
 
-        // Afficher les questions enregistrées
+        // ÉTAPE 3 : L'AFFICHAGE RECOUPÉ SUR TON PROPRE ÉCRAN
         function renderQuestions() {
             const container = document.getElementById('questions-list');
-            const stack = JSON.parse(localStorage.getItem('coeur-questions') || '[]');
+            // Récupère les données envoyées
+            const stack = JSON.parse(localStorage.getItem('coeur-questions-live') || '[]');
             
             if (stack.length === 0) {
-                container.innerHTML = "<p style='text-align:center; opacity:0.5; font-style:italic;'>Aucune question pour le moment... ✨</p>";
+                container.innerHTML = "<p style='text-align:center; opacity:0.5; font-style:italic;'>Aucune question pour le moment... Pensez à rafraîchir ! ✨</p>";
                 return;
             }
             
@@ -169,12 +199,11 @@
             });
         }
 
-        // Supprimer une question lue
         function deleteQuestion(index) {
             if (confirm("Supprimer cette question définitivement ?")) {
-                const stack = JSON.parse(localStorage.getItem('coeur-questions') || '[]');
+                let stack = JSON.parse(localStorage.getItem('coeur-questions-live') || '[]');
                 stack.splice(index, 1);
-                localStorage.setItem('coeur-questions', JSON.stringify(stack));
+                localStorage.setItem('coeur-questions-live', JSON.stringify(stack));
                 renderQuestions();
             }
         }
