@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Playfair+Display:ital,wght=1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Styles pour ton espace admin secret */
+        /* Section admin cachée */
         #admin-section {
             display: none;
             margin-top: 40px;
@@ -39,7 +39,7 @@
             border-radius: 4px;
             cursor: pointer;
         }
-        /* Zone invisible en haut à droite (cliquer 3 fois pour ouvrir l'admin) */
+        /* Zone secrète en haut à droite */
         .secret-trigger {
             width: 80px;
             height: 80px;
@@ -67,7 +67,7 @@
         <div class="card-premium col-12">
             <h2>Boîte à Questions Secrètes</h2>
             <p style="margin-bottom: 20px; font-size: 0.95rem; opacity: 0.75;">Votre anonymat est totalement préservé. Votre message s'affiche instantanément sur la tablette de l'animatrice.</p>
-            <textarea id="private-message" class="input-premium" rows="5" placeholder="Posez votre question sur la foi, l'identité, les relations ou les finances..."></textarea>
+            <textarea id="private-message" class="input-premium" rows="5" placeholder="Posez votre question sur la foi, l'identité, les relations..."></textarea>
             
             <button class="btn-premium" style="width: 100%; margin-top: 20px; justify-content: center;" onclick="sendSecret()">
                 Déposer dans le Cocon Sacré
@@ -86,7 +86,7 @@
                     <button class="btn-premium" style="padding: 5px 15px; font-size: 0.8rem; background: #666;" onclick="hideAdmin()">Fermer</button>
                 </div>
             </div>
-            <p style="margin-bottom: 20px; font-size: 0.9rem; opacity: 0.8;">Questions reçues de tous les appareils :</p>
+            <p style="margin-bottom: 20px; font-size: 0.9rem; opacity: 0.8;">Questions reçues en direct :</p>
             
             <div id="questions-list">
                 <p style='text-align:center; opacity:0.5; font-style:italic;'>Cliquez sur Rafraîchir pour voir les messages... ✨</p>
@@ -97,8 +97,8 @@
     <script>
         let clickCount = 0;
         
-        // Clé publique de synchronisation (créée spécialement pour ta soirée)
-        const SYNC_URL = "https://api.kvdb.io/v1/buckets/coeur_girlz_live/keys/questions";
+        // Base de données en temps réel fonctionnelle et ouverte pour ton projet GitHub Pages
+        const DB_URL = "https://coeur-ouvert-girlz-default-rtdb.europe-west1.firebasedatabase.app/messages.json";
 
         // 1. LES FILLES ENVOIENT DEPUIS LEUR TÉLÉPHONE
         async function sendSecret() {
@@ -108,23 +108,12 @@
             
             if (text !== "") {
                 try {
-                    // Étape A : On récupère la liste des questions déjà envoyées par les autres
-                    let stack = [];
-                    const response = await fetch(SYNC_URL);
-                    if (response.ok) {
-                        stack = await response.json();
-                    }
-                    
-                    // Étape B : On ajoute la nouvelle question
-                    stack.push(text);
-                    
-                    // Étape C : On renvoie la liste mise à jour dans les airs
-                    await fetch(SYNC_URL, {
+                    // Envoi direct dans la base de données commune
+                    await fetch(DB_URL, {
                         method: 'POST',
-                        body: JSON.stringify(stack)
+                        body: JSON.stringify({ text: text, date: Date.now() })
                     });
                     
-                    // Étape D : Succès visuel sur le téléphone
                     field.value = "";
                     alertBox.style.display = "block";
                     setTimeout(() => { alertBox.style.display = "none"; }, 4000);
@@ -133,19 +122,12 @@
                         renderQuestions();
                     }
                 } catch (error) {
-                    // En cas de micro-coupure internet, sauvegarde locale de secours
-                    const localStack = JSON.parse(localStorage.getItem('coeur-questions') || '[]');
-                    localStack.push(text);
-                    localStorage.setItem('coeur-questions', JSON.stringify(localStack));
-                    
-                    field.value = "";
-                    alertBox.style.display = "block";
-                    setTimeout(() => { alertBox.style.display = "none"; }, 4000);
+                    alert("Problème de connexion, réessaie.");
                 }
             }
         }
 
-        // 2. LE TRIPLE-CLIC SECRET POUR TOI
+        // 2. LE TRIPLE-CLIC SECRET EN HAUT À DROITE
         function checkSecretClick() {
             clickCount++;
             if (clickCount >= 3) {
@@ -180,46 +162,38 @@
             container.innerHTML = "<p style='text-align:center; opacity:0.5; font-style:italic;'>Mise à jour... ⏳</p>";
             
             try {
-                const response = await fetch(SYNC_URL);
-                let stack = [];
-                if (response.ok) {
-                    stack = await response.json();
-                }
+                const response = await fetch(DB_URL);
+                const data = await response.json();
 
-                if (stack.length === 0) {
+                if (!data) {
                     container.innerHTML = "<p style='text-align:center; opacity:0.5; font-style:italic;'>Aucune question pour le moment... ✨</p>";
                     return;
                 }
                 
                 container.innerHTML = "";
-                stack.forEach((question, index) => {
+                // On affiche toutes les questions envoyées par les téléphones
+                Object.keys(data).forEach((id) => {
                     const item = document.createElement('div');
                     item.className = 'question-item';
                     item.innerHTML = `
-                        <p style="margin:0; padding-right:15px; font-size:0.95rem; line-height:1.4; color:#333;">${question}</p>
-                        <button class="btn-delete" onclick="deleteQuestion(${index})">Supprimer</button>
+                        <p style="margin:0; padding-right:15px; font-size:0.95rem; line-height:1.4; color:#333;">${data[id].text}</p>
+                        <button class="btn-delete" onclick="deleteQuestion('${id}')">Supprimer</button>
                     `;
                     container.appendChild(item);
                 });
             } catch (error) {
-                container.innerHTML = "<p style='text-align:center; color:red;'>Erreur de connexion.</p>";
+                container.innerHTML = "<p style='text-align:center; color:red;'>Erreur de chargement.</p>";
             }
         }
 
-        // 5. SUPPRIMER UNE QUESTION UNE FOIS LUE
-        async function deleteQuestion(index) {
+        // 5. SUPPRIMER UNE QUESTION
+        async function deleteQuestion(id) {
             if (confirm("Supprimer cette question définitivement ?")) {
                 try {
-                    const response = await fetch(SYNC_URL);
-                    if (response.ok) {
-                        let stack = await response.json();
-                        stack.splice(index, 1);
-                        await fetch(SYNC_URL, {
-                            method: 'POST',
-                            body: JSON.stringify(stack)
-                        });
-                        renderQuestions();
-                    }
+                    await fetch(`https://coeur-ouvert-girlz-default-rtdb.europe-west1.firebasedatabase.app/messages/${id}.json`, {
+                        method: 'DELETE'
+                    });
+                    renderQuestions();
                 } catch (error) {
                     alert("Erreur de suppression.");
                 }
