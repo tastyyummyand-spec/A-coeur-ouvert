@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Playfair+Display:ital,wght=1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Styles pour masquer/afficher la section admin */
+        /* Styles pour l'espace d'administration caché */
         #admin-section {
             display: none;
             margin-top: 40px;
@@ -41,8 +41,8 @@
         }
         /* Zone d'activation invisible tout en haut à droite */
         .secret-trigger {
-            width: 60px;
-            height: 60px;
+            width: 70px;
+            height: 70px;
             position: absolute;
             top: 0;
             right: 0;
@@ -88,7 +88,7 @@
             <p style="margin-bottom: 20px; font-size: 0.9rem; opacity: 0.8;">Voici les questions reçues en temps réel de tous les téléphones :</p>
             
             <div id="questions-list">
-                <p style='text-align:center; opacity:0.5; font-style:italic;'>Cliquez sur Rafraîchir... ✨</p>
+                <p style='text-align:center; opacity:0.5; font-style:italic;'>Cliquez sur Rafraîchir pour charger les questions... ✨</p>
             </div>
         </div>
     </div>
@@ -97,10 +97,43 @@
         const SECRET_CODE = "08 aout"; 
         let clickCount = 0;
 
-        // Base de données en ligne gratuite connectée en direct pour ta soirée
-        const DB_URL = "https://coeur-ouvert-girlz-default-rtdb.firebaseio.com/questions.json";
+        // Une boîte de stockage en ligne synchronisée, anonyme et instantanée
+        const BOX_URL = "https://api.jsonbin.io/v3/b/6650cfd9ad19ca34f86ebf70";
+        const API_KEY = "$2a$10$E9bK9CST5hFNDQJmR/m9le1Y8IuM3X7C6wV/JbyA1HlM8F1iWAGp6";
 
-        // 1. ENVOI DEPUIS TOURS LES TÉLÉPHONES
+        // Récupérer la liste depuis le serveur
+        async function getCloudData() {
+            try {
+                const response = await fetch(`${BOX_URL}/latest`, {
+                    headers: { "X-Master-Key": API_KEY }
+                });
+                if (response.ok) {
+                    const result = await response.json();
+                    return result.record.list || [];
+                }
+            } catch (e) { console.error(e); }
+            return [];
+        }
+
+        // Sauvegarder la liste mise à jour sur le serveur
+        async function saveCloudData(newList) {
+            try {
+                await fetch(BOX_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': API_KEY
+                    },
+                    body: JSON.stringify({ list: newList })
+                });
+                return true;
+            } catch (e) {
+                console.error(e);
+                return false;
+            }
+        }
+
+        // 1. LES FILLES ENVOIENT DEPUIS LEUR TÉLÉPHONE
         async function sendSecret() {
             const field = document.getElementById('private-message');
             const text = field.value.trim();
@@ -110,28 +143,27 @@
                 alertBox.innerText = "⏳ Envoi au cocon...";
                 alertBox.style.display = "block";
 
-                try {
-                    // Envoie la question directement sur internet
-                    await fetch(DB_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({ text: text, timestamp: Date.now() })
-                    });
+                // Récupération des anciennes questions, ajout de la nouvelle, et sauvegarde
+                let currentQuestions = await getCloudData();
+                currentQuestions.push(text);
+                
+                const success = await saveCloudData(currentQuestions);
 
+                if (success) {
                     field.value = "";
                     alertBox.innerText = "✨ Votre question a été déposée avec douceur. Merci, ma sœur.";
-                    
-                    // Si ton admin est ouvert sur ton écran, ça rafraîchit
                     if (document.getElementById('admin-section').style.display === "block") {
                         renderQuestions();
                     }
-                } catch (error) {
-                    alertBox.innerText = "❌ Souci de connexion, réessayez.";
+                } else {
+                    alertBox.innerText = "❌ Souci de connexion, réessaye.";
                 }
+                
                 setTimeout(() => { alertBox.style.display = "none"; }, 4000);
             }
         }
 
-        // 2. DOUBLE/TRIPLE TAP EN HAUT À DROITE POUR L'ANIMATRICE
+        // 2. GESTE SECRET (3 CLICS EN HAUT À DROITE)
         function checkSecretClick() {
             clickCount++;
             if (clickCount >= 3) {
@@ -141,7 +173,7 @@
             setTimeout(() => { clickCount = 0; }, 2000);
         }
 
-        // VERIFICATION DE TON CODE SECRET : 08 aout
+        // 3. FENÊTRE POUR LE MOT DE PASSE "08 aout"
         function askAdminCode() {
             const password = prompt("Entrez le code secret animatrice pour afficher les questions :");
             if (password) {
@@ -160,47 +192,37 @@
             document.getElementById('admin-section').style.display = "none";
         }
 
-        // 3. AFFICHAGE DES MESSAGES EN TEMPS RÉEL SUR TA TABLETTE
+        // 4. CHARGEMENT ET AFFICHAGE DES MESSAGES SUR TON ÉCRAN
         async function renderQuestions() {
             const container = document.getElementById('questions-list');
             container.innerHTML = "<p style='text-align:center; opacity:0.5; font-style:italic;'>Mise à jour... ⏳</p>";
             
-            try {
-                const response = await fetch(DB_URL);
-                const data = await response.json();
-                
-                if (!data) {
-                    container.innerHTML = "<p style='text-align:center; opacity:0.5; font-style:italic;'>Aucune question pour le moment... ✨</p>";
-                    return;
-                }
-                
-                container.innerHTML = "";
-                // On boucle sur les messages reçus du cloud
-                Object.keys(data).forEach((key) => {
-                    const item = document.createElement('div');
-                    item.className = 'question-item';
-                    item.innerHTML = `
-                        <p style="margin:0; padding-right:15px; font-size:0.95rem; line-height:1.4; color:#333;">${data[key].text}</p>
-                        <button class="btn-delete" onclick="deleteQuestion('${key}')">Supprimer</button>
-                    `;
-                    container.appendChild(item);
-                });
-            } catch (error) {
-                container.innerHTML = "<p style='text-align:center; color:red;'>Erreur lors du chargement des messages.</p>";
+            const stack = await getCloudData();
+            
+            if (stack.length === 0) {
+                container.innerHTML = "<p style='text-align:center; opacity:0.5; font-style:italic;'>Aucune question pour le moment... ✨</p>";
+                return;
             }
+            
+            container.innerHTML = "";
+            stack.forEach((question, index) => {
+                const item = document.createElement('div');
+                item.className = 'question-item';
+                item.innerHTML = `
+                    <p style="margin:0; padding-right:15px; font-size:0.95rem; line-height:1.4; color:#333;">${question}</p>
+                    <button class="btn-delete" onclick="deleteQuestion(${index})">Supprimer</button>
+                `;
+                container.appendChild(item);
+            });
         }
 
-        // 4. SUPPRESSION D'UNE QUESTION DEPUIS TA TABLETTE
-        async function deleteQuestion(key) {
+        // 5. SUPPRIMER UNE QUESTION DEPUIS TA TABLETTE
+        async function deleteQuestion(index) {
             if (confirm("Supprimer cette question définitivement ?")) {
-                try {
-                    await fetch(`https://coeur-ouvert-girlz-default-rtdb.firebaseio.com/questions/${key}.json`, {
-                        method: 'DELETE'
-                    });
-                    renderQuestions();
-                } catch (error) {
-                    alert("Erreur lors de la suppression.");
-                }
+                let stack = await getCloudData();
+                stack.splice(index, 1);
+                await saveCloudData(stack);
+                renderQuestions();
             }
         }
     </script>
