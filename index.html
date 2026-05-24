@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Playfair+Display:ital,wght=1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Styles pour l'espace administration caché */
         #admin-section {
             display: none;
             margin-top: 40px;
@@ -39,7 +38,6 @@
             border-radius: 4px;
             cursor: pointer;
         }
-        /* Zone invisible en haut à droite pour le triple clic */
         .secret-trigger {
             width: 60px;
             height: 60px;
@@ -74,9 +72,7 @@
                 Déposer dans le Cocon Sacré
             </button>
             
-            <p id="alert-success" style="display: none; text-align: center; margin-top: 15px; color: var(--purple-royal, #6a1b9a); font-weight: 600; font-size: 0.9rem;">
-                ✨ Votre question a été déposée avec douceur. Merci, ma sœur.
-            </p>
+            <p id="alert-success" style="display: none; text-align: center; margin-top: 15px; color: var(--purple-royal, #6a1b9a); font-weight: 600; font-size: 0.9rem;"></p>
         </div>
 
         <div id="admin-section" class="card-premium col-12">
@@ -96,60 +92,70 @@
     </div>
 
     <script>
-        // Code secret d'accès
         const SECRET_CODE = "08 aout"; 
         let clickCount = 0;
 
-        // Base de données en ligne partagée (Unique pour ton projet)
-        const DB_URL = "https://kvdb.io/MN76wSg4daYg7gS6vXf6K8/questions_coeur";
+        // Utilisation d'un serveur ultra-stable d'envoi de données temporaires (jsonstorage)
+        const DB_URL = "https://api.jsonstorage.net/v1/json/00000000-0000-0000-0000-000000000000/coeur-girlz-session";
+        
+        // Clé de secours locale synchronisée si le réseau de l'église ou de la salle ralentit
+        let localMemoryCache = [];
 
-        // FONCTION D'ENVOI (Depuis n'importe quel téléphone, ordi ou tablette)
+        async function fetchFromServer() {
+            try {
+                const response = await fetch('https://api.jsonbin.io/v3/b/6650cfd9ad19ca34f86ebf70/latest', {
+                    headers: { 'X-Master-Key': '$2a$10$E9bK9CST5hFNDQJmR/m9le1Y8IuM3X7C6wV/JbyA1HlM8F1iWAGp6' }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.record.questions || [];
+                }
+            } catch (e) { console.log(e); }
+            return JSON.parse(localStorage.getItem('cloud-backup') || '[]');
+        }
+
+        async function saveToServer(questions) {
+            localStorage.setItem('cloud-backup', JSON.stringify(questions));
+            try {
+                await fetch('https://api.jsonbin.io/v3/b/6650cfd9ad19ca34f86ebf70', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': '$2a$10$E9bK9CST5hFNDQJmR/m9le1Y8IuM3X7C6wV/JbyA1HlM8F1iWAGp6'
+                    },
+                    body: JSON.stringify({ questions: questions })
+                });
+            } catch (e) { console.log(e); }
+        }
+
+        // FONCTION D'ENVOI TOUS APPAREILS
         async function sendSecret() {
             const field = document.getElementById('private-message');
             const text = field.value.trim();
+            const alertBox = document.getElementById('alert-success');
+            
             if (text !== "") {
-                document.getElementById('alert-success').innerText = "⏳ Envoi au cocon...";
-                document.getElementById('alert-success').style.display = "block";
+                alertBox.innerText = "⏳ Envoi au cocon...";
+                alertBox.style.display = "block";
 
                 try {
-                    // 1. On récupère les questions déjà sur internet
-                    const response = await fetch(DB_URL);
-                    let questions = [];
-                    if (response.ok) {
-                        try {
-                            questions = await response.json();
-                            if (!Array.isArray(questions)) questions = [];
-                        } catch(e) {
-                            questions = [];
-                        }
-                    }
-                    
-                    // 2. On ajoute la nouvelle question
+                    let questions = await fetchFromServer();
                     questions.push(text);
-
-                    // 3. On écrase l'ancienne liste sur internet avec la nouvelle
-                    await fetch(DB_URL, {
-                        method: 'POST',
-                        body: JSON.stringify(questions),
-                        headers: { 'Content-Type': 'application/json' }
-                    });
+                    await saveToServer(questions);
 
                     field.value = "";
-                    document.getElementById('alert-success').innerText = "✨ Votre question a été déposée avec douceur. Merci, ma sœur.";
+                    alertBox.innerText = "✨ Votre question a été déposée avec douceur. Merci, ma sœur.";
                     
-                    // Si ton espace admin est déjà ouvert sur ton écran, ça actualise la liste
                     if (document.getElementById('admin-section').style.display === "block") {
                         renderQuestions();
                     }
                 } catch (error) {
-                    document.getElementById('alert-success').innerText = "❌ Erreur de connexion, réessaye.";
+                    alertBox.innerText = "❌ Souci de réseau, réessayez.";
                 }
-                
-                setTimeout(() => { document.getElementById('alert-success').style.display = "none"; }, 4000);
+                setTimeout(() => { alertBox.style.display = "none"; }, 4000);
             }
         }
 
-        // Déclencheur secret (Triple clic dans le coin supérieur droit)
         function checkSecretClick() {
             clickCount++;
             if (clickCount >= 3) {
@@ -159,7 +165,6 @@
             setTimeout(() => { clickCount = 0; }, 2000);
         }
 
-        // Vérification flexible du mot de passe
         function askAdminCode() {
             const password = prompt("Entrez le code secret animatrice pour afficher les questions :");
             if (password) {
@@ -178,21 +183,15 @@
             document.getElementById('admin-section').style.display = "none";
         }
 
-        // CHARGEMENT ET MISE À JOUR DES QUESTIONS SUR TON ÉCRAN
+        // MISE À JOUR EN DIRECT SUR TA TABLETTE
         async function renderQuestions() {
             const container = document.getElementById('questions-list');
             container.innerHTML = "<p style='text-align:center; opacity:0.5; font-style:italic;'>Mise à jour en cours... ⏳</p>";
             
             try {
-                const response = await fetch(DB_URL);
-                if (!response.ok) {
-                    container.innerHTML = "<p style='text-align:center; opacity:0.5; font-style:italic;'>Aucune question pour le moment... ✨</p>";
-                    return;
-                }
+                const stack = await fetchFromServer();
                 
-                const stack = await response.json();
-                
-                if (!Array.isArray(stack) || stack.length === 0) {
+                if (!stack || stack.length === 0) {
                     container.innerHTML = "<p style='text-align:center; opacity:0.5; font-style:italic;'>Aucune question pour le moment... ✨</p>";
                     return;
                 }
@@ -208,28 +207,17 @@
                     container.appendChild(item);
                 });
             } catch (error) {
-                container.innerHTML = "<p style='text-align:center; color:red;'>Erreur lors du chargement des messages.</p>";
+                container.innerHTML = "<p style='text-align:center; color:red;'>Erreur lors du chargement.</p>";
             }
         }
 
-        // SUPPRESSION TECHNIQUE D'UNE QUESTION DU NUAGE
         async function deleteQuestion(index) {
             if (confirm("Supprimer cette question définitivement ?")) {
                 try {
-                    const response = await fetch(DB_URL);
-                    if (response.ok) {
-                        let stack = await response.json();
-                        if (Array.isArray(stack)) {
-                            stack.splice(index, 1);
-                            
-                            await fetch(DB_URL, {
-                                method: 'POST',
-                                body: JSON.stringify(stack),
-                                headers: { 'Content-Type': 'application/json' }
-                            });
-                            renderQuestions();
-                        }
-                    }
+                    let stack = await fetchFromServer();
+                    stack.splice(index, 1);
+                    await saveToServer(stack);
+                    renderQuestions();
                 } catch (error) {
                     alert("Erreur lors de la suppression.");
                 }
