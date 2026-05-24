@@ -14,7 +14,10 @@
     --white: #ffffff;
     --glass: rgba(255, 255, 255, 0.62);
     --glass-border: rgba(167, 139, 250, 0.25);
-    --shadow-soft: 0 8px 40px rgba(109, 40, 217, 0.08);
+
+    --shadow-soft:
+        0 8px 40px rgba(109, 40, 217, 0.08);
+
     --shadow-card:
         0 2px 20px rgba(59, 7, 100, 0.06),
         0 0 0 1px rgba(167,139,250,0.13);
@@ -59,9 +62,10 @@ body {
     overflow-x: hidden;
 }
 
-/* ✨ SUPPRESSION DES CROIX DU BACKGROUND */
+/* ✨ NOUVEAU FOND SANS CROIX */
 
 body::before {
+
     content: '';
 
     position: fixed;
@@ -96,6 +100,7 @@ body::before {
 }
 
 .luxury-header::after {
+
     content: '';
 
     display: block;
@@ -135,6 +140,7 @@ body::before {
 }
 
 .brand-badge {
+
     font-family: 'DM Sans', sans-serif;
 
     font-size: 0.65rem;
@@ -167,6 +173,7 @@ body::before {
 }
 
 .verset {
+
     font-family: 'DM Sans', sans-serif;
 
     font-size: 0.78rem;
@@ -187,6 +194,7 @@ body::before {
 /* ✦ GRILLE */
 
 .grid-layout {
+
     max-width: 1160px;
 
     margin: 0 auto;
@@ -207,6 +215,7 @@ body::before {
 /* ✦ CARDS */
 
 .card-premium {
+
     background: var(--glass);
 
     backdrop-filter: blur(40px) saturate(1.4);
@@ -229,6 +238,7 @@ body::before {
 }
 
 .card-premium::before {
+
     content: '';
 
     position: absolute;
@@ -249,14 +259,23 @@ body::before {
 }
 
 .card-premium:hover {
+
     box-shadow:
         0 8px 40px rgba(109,40,217,0.12),
         0 0 0 1px rgba(167,139,250,0.2);
 }
 
-.col-12 { grid-column: span 12; }
-.col-8  { grid-column: span 8; }
-.col-4  { grid-column: span 4; }
+.col-12 {
+    grid-column: span 12;
+}
+
+.col-8 {
+    grid-column: span 8;
+}
+
+.col-4 {
+    grid-column: span 4;
+}
 
 @media (max-width: 900px) {
 
@@ -270,9 +289,10 @@ body::before {
     }
 }
 
-/* ✦ TYPOGRAPHIE */
+/* ✦ TYPO */
 
 h2 {
+
     font-family: 'Cormorant Garamond', serif;
 
     font-size: 1.65rem;
@@ -291,6 +311,7 @@ h2 {
 }
 
 h2 i {
+
     font-size: 1.1rem;
 
     color: var(--purple-light);
@@ -299,6 +320,7 @@ h2 i {
 }
 
 p {
+
     font-size: 0.9rem;
 
     line-height: 1.75;
@@ -311,6 +333,7 @@ p {
 /* ✦ INPUTS */
 
 .input-premium {
+
     width: 100%;
 
     padding: 16px 20px;
@@ -338,6 +361,7 @@ p {
 }
 
 .input-premium:focus {
+
     border-color: var(--purple-light);
 
     box-shadow:
@@ -345,6 +369,7 @@ p {
 }
 
 .input-premium::placeholder {
+
     color: var(--purple-mid);
 
     opacity: 0.45;
@@ -353,6 +378,7 @@ p {
 /* ✦ BOUTONS */
 
 .btn-premium {
+
     background:
         linear-gradient(
             135deg,
@@ -395,6 +421,7 @@ p {
 }
 
 .btn-premium::after {
+
     content: '';
 
     position: absolute;
@@ -412,6 +439,7 @@ p {
 }
 
 .btn-premium:hover {
+
     transform: translateY(-2px);
 
     box-shadow:
@@ -424,7 +452,7 @@ p {
     transform: translateY(0);
 }
 
-/* ✦ LISTES */
+/* ✦ LISTE */
 
 .list-ateliers {
     list-style: none;
@@ -432,6 +460,7 @@ p {
 }
 
 .list-ateliers li {
+
     padding: 8px 0;
 
     border-bottom:
@@ -458,6 +487,7 @@ p {
 /* ✦ PROJECTION */
 
 .projection-view {
+
     background:
         radial-gradient(
             ellipse at center,
@@ -477,6 +507,7 @@ p {
 }
 
 .showcase-content {
+
     text-align: center;
 
     max-width: 850px;
@@ -487,6 +518,7 @@ p {
 }
 
 .showcase-content h1 {
+
     font-family: 'Cormorant Garamond', serif;
 
     font-size: 4rem;
