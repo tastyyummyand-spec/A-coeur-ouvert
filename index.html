@@ -16,23 +16,21 @@
             position: relative;
             overflow: hidden;
         }
-        /* CORRECTION : La croix est mise en arrière-plan total et ne bloque plus les clics */
         .cocon-card::before {
             content: '✝';
             position: absolute;
             top: -10px; right: -10px;
             font-size: 6rem;
             color: rgba(167,139,250,0.06);
-            pointer-events: none; /* Empêche de bloquer le clic */
-            z-index: 1; /* Reste derrière le texte et les boutons */
+            pointer-events: none;
+            z-index: 1;
         }
         @media (max-width: 480px) {
             .cocon-card::before {
-                font-size: 4.5rem; /* Plus petite sur téléphone pour éviter tout conflit */
+                font-size: 4.5rem;
                 top: -5px; right: -5px;
             }
         }
-        /* S'assurer que le contenu est cliquable par-dessus la croix */
         .cocon-title, .cocon-subtitle, .anon-badge, .input-premium, .char-hint, .btn-cocon, .blessing-box {
             position: relative;
             z-index: 2;
@@ -205,6 +203,7 @@
             { emoji: "💫", title: "Message envoyé — Bonne soirée à cœur ouvert !", verset: "« Tout ce que vous demanderez avec foi par la prière, vous le recevrez. »", ref: "Matthieu 21 : 22" },
         ];
 
+        // Rendre les fonctions accessibles au clic HTML (window.)
         window.updateChar = function(el) {
             document.getElementById('char-hint').textContent = el.value.length + ' / 500 caractères';
         };
