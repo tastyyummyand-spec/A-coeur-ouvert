@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scénographie Public - À Cœur Ouvert</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600&family=Playfair+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="projection-view" id="canvas-screen">
+
+    <div class="floating-particle" style="top:10%; left:5%; animation-delay: 1s;">🦋</div>
+    <div class="floating-particle" style="top:50%; left:80%; animation-delay: 4s;">✝️</div>
+    <div class="floating-particle" style="top:80%; left:15%; animation-delay: 7s;">🦋</div>
+    <div class="floating-particle" style="top:25%; left:65%; animation-delay: 10s;">✝️</div>
+
+    <div class="showcase-content" id="screen-viewport">
+        <p style="text-transform: uppercase; letter-spacing: 5px; color: var(--purple-royal); margin-bottom: 15px; font-weight: 600;">Deuxième Édition</p>
+        <h1 style="font-size: 4rem;">À Cœur Ouvert</h1>
+        <p style="margin-top: 25px; font-style: italic; opacity: 0.6; font-size: 1.2rem;">"Face à face avec Dieu" • Genèse 32:30</p>
+    </div>
+
+    <script>
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'scenic-display') {
+                const data = JSON.parse(e.newValue).payload;
+                document.getElementById('screen-viewport').innerHTML = `
+                    <p style="text-transform: uppercase; letter-spacing: 5px; color: var(--purple-royal); margin-bottom: 25px; font-weight: 600;">${data.meta}</p>
+                    <h1>${data.body}</h1>
+                `;
+            }
+
+            if (e.key === 'scenic-control') {
+                const action = JSON.parse(e.newValue).payload;
+                const bodyEl = document.getElementById('canvas-screen');
+
+                if (action === 'blackout') {
+                    bodyEl.classList.toggle('blackout-mode');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

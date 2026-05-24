@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Console Directrice - À Cœur Ouvert</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="floating-particle" style="top:15%; left:8%; animation-delay: 0s;">🦋</div>
+    <div class="floating-particle" style="top:45%; left:85%; animation-delay: 3s;">✝️</div>
+    <div class="floating-particle" style="top:75%; left:12%; animation-delay: 6s;">🦋</div>
+    <div class="floating-particle" style="top:30%; left:70%; animation-delay: 9s;">✝️</div>
+
+    <header class="luxury-header">
+        <div class="brand-badge">Espace Directeur Technique</div>
+        <h1>À Cœur Ouvert</h1>
+        <div class="verset">Dimanche 24 au 25 Mai 2026 • Siège AFD</div>
+    </header>
+
+    <div class="grid-layout">
+
+        <div class="card-premium col-12">
+            <h2><i class="fa-solid fa-sliders"></i> Contrôle de la Scène Direct</h2>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <button class="btn-premium" onclick="triggerControl('blackout')" style="background: #991b1b;"><i class="fa-solid fa-eye-slash"></i> Masquer / Révéler l'Écran</button>
+                <button class="btn-premium" onclick="pushDisplay('Pause Café ☕', '02h40 - 03h00 : Prenez le temps de souffler et de partager une boisson chaude entre sœurs. ✨')"><i class="fa-solid fa-coffee"></i> Projeter Écran Pause</button>
+            </div>
+        </div>
+
+        <div class="card-premium col-4">
+            <h2><i class="fa-solid fa-calendar-clock"></i> Déroulé & Chrono</h2>
+            <p style="margin-bottom: 15px; font-weight: 600; color: var(--purple-royal);">Cliquez pour projeter l'étape actuelle :</p>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <button class="btn-premium" style="background: rgba(255,255,255,0.7); color: var(--purple-deep);" onclick="pushDisplay('Prière & Adoration 🕊️', '22h10 - 00h00<br><small>Dirigeantes : Keren Seri & Audrey Ouattara<br>Chantres : Ariane, Joëlle Yedidia, Monique (Respo Joela)</small>')">22h10 : Prière & Adoration</button>
+                <button class="btn-premium" style="background: rgba(255,255,255,0.7); color: var(--purple-deep);" onclick="pushDisplay('Jeu Time 🎲', '00h05 - 00h55<br>Que la joie du Seigneur soit notre force !')">00h05 : Jeu Time</button>
+                <button class="btn-premium" style="background: rgba(255,255,255,0.7); color: var(--purple-deep);" onclick="pushDisplay('Montre-moi ce que tu sais faire ✨', '01h00 - 01h50<br>Ateliers Pratiques & Découvertes')">01h00 : Ateliers créatifs</button>
+                <button class="btn-premium" style="background: rgba(255,255,255,0.7); color: var(--purple-deep);" onclick="pushDisplay('Partage d\'Expériences 💬', '01h55 - 02h35<br><small>Éducation financière, relations amoureuses, vie spirituelle & professionnelle</small>')">01h55 : Échanges & Secrets</button>
+                <button class="btn-premium" style="background: rgba(255,255,255,0.7); color: var(--purple-deep);" onclick="pushDisplay('Intervention Spéciale 👑', '03h05 - 06h00<br>Par la Présidente et Respo Laurelle')">03h05 : Clôture prophétique</button>
+            </div>
+        </div>
+
+        <div class="card-premium col-8">
+            <h2><i class="fa-solid fa-gamepad"></i> Banque de Jeux Intégrée</h2>
+            <p style="margin-bottom: 15px;">Sélectionnez une étape pour la pousser instantanément sur le projecteur :</p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div style="background: rgba(255,255,255,0.4); padding: 15px; border-radius: 12px;">
+                    <strong style="font-size:0.9rem; display:block; margin-bottom:8px;">1. Mimes & Alphabet</strong>
+                    <button class="btn-premium" style="width:100%; margin-bottom:5px; font-size:0.8rem;" onclick="pushDisplay('Jeu des Mimes 🎭', 'Mimez un personnage biblique ou une figure religieuse ! C\'est parti !')">Projeter Mimes</button>
+                    <button class="btn-premium" style="width:100%; font-size:0.8rem;" onclick="pushDisplay('Jeu de l\'Alphabet 🔤', 'Donnez un personnage biblique commençant par la lettre projetée !')">Projeter Alphabet</button>
+                </div>
+                
+                <div style="background: rgba(255,255,255,0.4); padding: 15px; border-radius: 12px;">
+                    <strong style="font-size:0.9rem; display:block; margin-bottom:8px;">2. Chants & Énigmes</strong>
+                    <button class="btn-premium" style="width:100%; margin-bottom:5px; font-size:0.8rem;" onclick="pushDisplay('Trouve la Chanson 🎵', 'Trouvez une chanson chrétienne contenant le mot imposé par l\'animatrice !')">Projeter Jeu Chants</button>
+                    <button class="btn-premium" style="width:100%; font-size:0.8rem;" onclick="pushDisplay('Devinettes & Livres 📜', 'Trouvez le livre de la Bible ou répondez à l\'énigme !')">Projeter Devinette</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-premium col-4">
+            <h2><i class="fa-solid fa-box-tissue"></i> Prérequis Ateliers</h2>
+            <div style="margin-bottom: 15px;">
+                <strong style="font-size: 0.9rem;">🧶 Atelier Crochet :</strong>
+                <ul class="list-ateliers">
+                    <li><i class="fa-solid fa-circle-check"></i> Un crochet</li>
+                    <li><i class="fa-solid fa-circle-check"></i> Une pelote de laine</li>
+                </ul>
+            </div>
+            <div>
+                <strong style="font-size: 0.9rem;">💄 Maquillage & Identité (Myra Kouakou) :</strong>
+                <p style="font-size:0.8rem; font-style:italic; margin-bottom:5px;">"Se cacher ou se révéler ?"</p>
+                <ul class="list-ateliers">
+                    <li><i class="fa-solid fa-minus"></i> Pinceaux & Blenders</li>
+                    <li><i class="fa-solid fa-minus"></i> Fond de teint & Poudre</li>
+                    <li><i class="fa-solid fa-minus"></i> Rouge à lèvres & Miroir</li>
+                    <li><i class="fa-solid fa-minus"></i> Lingettes démaquillantes</li>
+                </ul>
+                <p style="font-size:0.8rem; opacity:0.6; margin-top:5px;">💅 Mode Manucure/Pédicure : Laura</p>
+            </div>
+        </div>
+
+        <div class="card-premium col-8">
+            <h2><i class="fa-solid fa-envelope-open-text"></i> Boîte Secrète des Questions</h2>
+            <p style="margin-bottom: 20px;">Les questions transmises de manière anonyme s'ajoutent ici. Personne d'autre ne peut les intercepter.</p>
+            <div id="admin-questions-box" style="display: flex; flex-direction: column; gap: 12px;">
+                </div>
+        </div>
+
+    </div>
+
+    <script>
+        function sendEvent(key, payload) {
+            localStorage.setItem(key, JSON.stringify({ payload: payload, timestamp: Date.now() }));
+        }
+
+        function pushDisplay(meta, body) {
+            sendEvent('scenic-display', { meta: meta, body: body });
+        }
+
+        function triggerControl(action) {
+            sendEvent('scenic-control', action);
+        }
+
+        function fetchQuestions() {
+            const container = document.getElementById('admin-questions-box');
+            const list = JSON.parse(localStorage.getItem('coeur-questions') || '[]');
+            container.innerHTML = list.length === 0 ? '<p style="font-style:italic; opacity:0.5;">En attente de partages de la part des participantes...</p>' : '';
+            
+            list.forEach((q, index) => {
+                const row = document.createElement('div');
+                row.style = "background: #ffffff; padding: 16px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--purple-royal); box-shadow: 0 4px 10px rgba(0,0,0,0.02);";
+                row.innerHTML = `
+                    <span style="font-weight: 500; color: var(--purple-deep); font-size:0.95rem;">"${q}"</span>
+                    <button class="btn-premium" style="padding: 8px 16px; font-size: 0.8rem;" onclick="projectQuestion(${index})">Projeter</button>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function projectQuestion(index) {
+            const list = JSON.parse(localStorage.getItem('coeur-questions') || '[]');
+            pushDisplay('Question Anonyme 💬', list[index]);
+        }
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'coeur-questions') fetchQuestions();
+        });
+
+        fetchQuestions();
+    </script>
+</body>
+</html>
