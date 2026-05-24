@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>À Cœur Ouvert - Porteuse de Vie</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght=0,300;0,400;1,300;1,400&family=DM+Sans:wght=300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <style>
         .cocon-card {
@@ -19,21 +19,10 @@
         .cocon-card::before {
             content: '✝';
             position: absolute;
-            top: -10px; right: -10px;
-            font-size: 6rem;
+            top: -20px; right: -10px;
+            font-size: 8rem;
             color: rgba(167,139,250,0.06);
             pointer-events: none;
-            z-index: 1;
-        }
-        @media (max-width: 480px) {
-            .cocon-card::before {
-                font-size: 4.5rem;
-                top: -5px; right: -5px;
-            }
-        }
-        .cocon-title, .cocon-subtitle, .anon-badge, .input-premium, .char-hint, .btn-cocon, .blessing-box {
-            position: relative;
-            z-index: 2;
         }
         .cocon-title {
             font-family: 'Cormorant Garamond', serif;
@@ -137,6 +126,7 @@
 </head>
 <body>
 
+
     <header class="luxury-header" style="padding: 55px 20px 20px;">
         <div class="brand-badge">Porteuse de Vie • Soirée À Cœur Ouvert</div>
         <h1>À Cœur Ouvert</h1>
@@ -203,7 +193,6 @@
             { emoji: "💫", title: "Message envoyé — Bonne soirée à cœur ouvert !", verset: "« Tout ce que vous demanderez avec foi par la prière, vous le recevrez. »", ref: "Matthieu 21 : 22" },
         ];
 
-        // Rendre les fonctions accessibles au clic HTML (window.)
         window.updateChar = function(el) {
             document.getElementById('char-hint').textContent = el.value.length + ' / 500 caractères';
         };
